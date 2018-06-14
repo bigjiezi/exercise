@@ -1,0 +1,53 @@
+#!/usr/bin/python3
+#-*-coding:UTF-8-*-
+class Animal(object):
+    def __init__(self,name,typ):
+        self.name=name
+        self.type=typ
+    def act(self):
+        print('animal is eating')
+        print('%s is a %s animal,it is eating now.'%(self.name,self.type))
+class Mammal(Animal):
+    def act(self):
+        print('%s is feeding its baby.'%self.name)
+class Bird(Animal):
+    def act(self):
+        print('%s is hatching its eggs!'%self.name)
+class Runable(object):
+    def __init__(self,name):
+        self.name=name
+    def ability(self):
+        print('%s can run!'%self.name)
+class Swimable(object):
+    def __init__(self,name):
+        self.name=name
+    def ability(self):
+        print('%s can swim!'%self.name)
+class Flyable(object):
+    def __init__(self,name):
+        self.name=name
+    def ability(self):
+        print('%s can fly!'%self.name)
+class Dog(Mammal,Runable):
+    pass
+class Duck(Bird,Swimable):
+    pass
+class Bat(Mammal,Flyable):
+    pass
+def intro(object):
+    object.act()
+    object.ability()
+name=input('请输入一个动物名称：')
+if name.lower()=='dog' or name=='狗':
+    typ='mammal'
+    intro(Dog(name,typ))
+elif name.lower()=='duck' or name=='鸭':
+    typ='bird'
+    intro(Duck(name,typ))
+elif name.lower()=='bat' or name=='蝙蝠':
+    typ='mammal'
+    intro(Bat(name,typ))
+else:
+    print('数据库正在更新中...')
+
+    
