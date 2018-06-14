@@ -1,0 +1,25 @@
+#!/usr/bin/python3
+#-*-coding:UTF-8-*-
+def Is_amsterlong(a):
+    l=len(a)
+    sum=0
+    #i=0
+    #while i<l:
+   #     sum+=int(a[i])**l
+  #      i+=1
+    for i in range(0,l):
+        sum+=int(a[i])**l
+    if int(a)==sum:
+        print( '%d is amsterlong number!'%int(a))
+    else:
+        print ('%d is not amsterlong number'%int(a))
+def is_digite(a):
+    try:
+        int(a)
+        return True
+    except:
+        return False
+
+num=input('请输入一个整数：')
+assert is_digite(num),'输入的不是正整数！'
+Is_amsterlong(num)
