@@ -1,0 +1,14 @@
+#!/usr/bin/python3
+#-*-coding:UTF-8-*-
+#用十六进制表示整数
+def sixtn(a):
+    print('转换成十六进制后：%s' %hex(int(a)))
+def is_digite(a):
+    try:
+        int(a)
+        return True
+    except:
+        return False
+recv=input("输入一个整数：")
+assert is_digite(recv),"输入的不是整数"
+sixtn(recv)
