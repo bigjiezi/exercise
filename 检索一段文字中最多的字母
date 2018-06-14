@@ -1,0 +1,30 @@
+#!/usr/bin/python3
+#-*-coding:UTF-8-*-
+def src_max(string):
+    low=string.lower()
+    s=list(low)
+    book=[None]*len(s)
+    book[0]=s[0]
+    k=1
+    t=s[0]
+    l=s.count(s[0])
+    for i in range(1,len(s)):
+        if ord('a')<=ord(s[i])<=ord('z'):
+             if s[i]!=t:
+                 if s.count(s[i])<l:
+                       pass
+                 elif s.count(s[i])==l:
+                       book[k]=s[i]
+                       k+=1
+                 else:
+                      l=s.count(s[i])
+                      book=[None]*len(s)
+                      t=s[i]
+                      k=0
+                      book[k]=s[i]
+                      k+=1
+    book.sort
+    print('The sentence we get is: %s'%string)
+    print('We have found which letter appear most time! We transform it to lower letter and show it. It\'s: \n%s'%book[0])
+sentence=input("Please input a sentence:")
+src_max(sentence)
