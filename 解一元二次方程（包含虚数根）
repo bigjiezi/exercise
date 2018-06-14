@@ -1,0 +1,35 @@
+#!/usr/bin/python3
+#-*-coding:UTF-8-*-
+import math
+def quadratic(a,b,c):
+    if a==0:
+        print('二次项系数为0，不是二次方程！')
+    else:
+
+        derta=b**2-4*a*c
+        if derta<0:
+             segm=round(math.sqrt(-derta)/(2*a),2)
+             frt=round((-b)/(2*a),2)
+             x1=frt+complex(0,segm)
+             x2=frt-complex(0,segm)
+             print('有两个虚根，分别是%r,%r'%(x1,x2))
+        elif derta==0:
+             x=(-b)/(2*a)
+             print('有唯一实根：%.2f'%x)
+        else:
+             x1=(-b+math.sqrt(derta))/(2*a)
+             x2=(-b-math.sqrt(derta))/(2*a)
+             print('有两个不同实根，分别是%.2f,%.2f'%(x1,x2))
+def is_num(m):
+    try:
+        float(m)
+        return True
+    except:
+        return False
+a=(input('请输入二次项系数：'))
+b=(input('请输入一次项系数：'))
+c=(input('请输入常数项：'))
+assert is_num(a),'二次项系数输入非实数'
+assert is_num(b),'一次项系数输入非实数'
+assert is_num(c),'常数项非实数'
+quadratic(float(a),float(b),float(c))
