@@ -78,13 +78,13 @@ def count_word(file1,file2):
        # duplicate=file_data[:]
        # duplicate_list=sorted(duplicate)
        # print(duplicate_list)
-       # re.sub(r"'\n'+",'',file_data)
-      #  re.sub(r',+','',file_data)
+        file_data=re.sub(r"\n+",'',file_data)
+        file_data=re.sub(r'\，+','',file_data)
       #  re.sub(r'\s+','',file_data)
         
         file_list=sorted(file_data)
-        count=file_list.count('\n')
-        del file_list[:count]
+       # count=file_list.count('\n')
+     #   del file_list[:count]
      #   print(file_list)
         while file_list:
             word=file_list[0]
