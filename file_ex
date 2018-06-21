@@ -116,6 +116,7 @@ else:
     print('暂不支持输出其他格式的诗，请确认您是否选择错误！')
 
 Input_poem(txt)
+print('您输入的诗为：')
 Output_poem(txt,deep_choice)
 count_word(txt,'./count.txt')
 old=input('您要替换的旧字符是：')
