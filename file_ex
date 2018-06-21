@@ -1,0 +1,123 @@
+#!/usr/bin/python3
+#-*-coding:UTF-8-*-
+import re
+def Input_poem(path):
+    with open(path,'w') as f_name:
+         get_title=input('请输入诗的标题：')
+         f_name.writelines(get_title)  
+    #title_length=len(get_title)
+    get_poem=input('请输入诗的内容（每句用空格隔开）：')
+    poem_split=get_poem.split()
+    for i in range(len(poem_split)):
+        with open(path,'a') as f_name:
+            f_name.writelines('\n'+poem_split[i])
+def Output_poem(path,deep_choice):
+    
+    if deep_choice==1.1:
+            with open(path,'r') as f_name:
+                line=f_name.readline()
+                print('{:^24}'.format(line))
+                while True:
+                    line=f_name.readline()
+                    if not line:
+                        break
+                    print('{:^20}'.format(line))
+    elif deep_choice==1.2:
+            with open(path,'r') as f_name:
+                line=f_name.readline()
+                print('{:^48}'.format(line))
+                while True:
+                    line=f_name.readline()
+                    if not line:
+                        break
+                    print('{:^40}'.format(line))
+    else:
+            print('您输入的是古诗吗？还是您选错格式了^_^')
+    if deep_choice==2:
+        #duplicate=poem_split[:]
+        #duplicate.sort(key=len,reverse=True)
+        #poem_maxlen=len(duplicate[0])
+        with open(path,'r') as f_name:
+            line=f_name.readline()
+            print('{:^10}'.format(line))
+            while True:
+                line=f_name.readline()
+                if not line:
+                    break
+                print(line)
+    
+
+#Ocient_poem('./test1.txt')
+def replace_word(old,new,file):
+    file_data=''
+    with open(file,'r') as f:
+        file_data+=f.readline()
+        while True:
+            line=f.readline()
+            if not line:
+                break
+            
+            line=line.replace(old,new)
+            file_data+=line
+         
+    with open(file,'w') as f:
+        f.write(file_data)
+    print('修改过之后...')
+    Output_poem(file,deep_choice)
+
+def count_word(file1,file2):
+    #count=0
+    file_data=''
+    with open(file1,'r') as f1,open(file2,'w') as f2:
+        line=f1.readline()
+        while True:
+            line=f1.readline()
+            if not line:
+                break
+            file_data+=line
+       # duplicate=file_data[:]
+       # duplicate_list=sorted(duplicate)
+       # print(duplicate_list)
+       # re.sub(r"'\n'+",'',file_data)
+      #  re.sub(r',+','',file_data)
+      #  re.sub(r'\s+','',file_data)
+        
+        file_list=sorted(file_data)
+        count=file_list.count('\n')
+        del file_list[:count]
+     #   print(file_list)
+        while file_list:
+            word=file_list[0]
+            count=file_list.count(word)
+            f2.writelines('\n'+"'%s'有%d个"%(word,count)+';')
+            del file_list[:count]
+    print('在%s中:'%file1)
+
+    with open(file2,'r') as f:
+        print(f.read())
+   #     for line in f:
+     #        print(re.sub(r'\n','',line),end=';')
+  #  print('')
+
+
+
+
+    
+
+
+
+txt='./'+input('请输入您要编辑的文件名：')+'.txt'
+choice=int(input('您输入的诗是现代诗还是古代诗？请选择（1：古代诗；2：现代诗）：'))
+if choice==1:
+    deep_choice=float(input('请选择诗的格式（1.1：五言绝句；1.2：七言律诗）：'))
+elif choice==2:
+    deep_choice=2
+else:
+    print('暂不支持输出其他格式的诗，请确认您是否选择错误！')
+
+Input_poem(txt)
+Output_poem(txt,deep_choice)
+count_word(txt,'./count.txt')
+old=input('您要替换的旧字符是：')
+new=input('新字符是：')
+replace_word(old,new,txt)
