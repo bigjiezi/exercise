@@ -1,0 +1,281 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Mar 26 15:55:47 2019
+
+@author: bigjie
+"""
+
+import random
+import math
+import matplotlib.pyplot as plt
+import numpy as np
+import time
+
+class GA(object):
+    def __init__(self,population_size,chromosome_length,max_value,pc,pm):
+        self.population_size=population_size
+        self.chromosome_length=chromosome_length
+        self.max_value=max_value
+        self.pc=pc
+        self.pm=pm
+       # self.Generation=Generation
+#种群生成
+    def species_origin(self):
+        population=[[]]
+        for i in range(self.population_size):
+            chromosome_list=[]
+            for j in range(self.chromosome_length):
+                chromosome_list.append(random.randint(0,1))
+                population.append(chromosome_list)
+        return population[1:]
+#编码转化为十进制数
+    def translation(self,population):
+        pop_decimal=[]
+        #print(len(population[0]))
+        for i in range(len(population)):
+            total=0
+            for j in range(self.chromosome_length):
+                total+=population[i][j]*math.pow(2,j)
+            pop_decimal.append(total)
+        return pop_decimal
+#计算适应度列表
+    def fit_f(self,population):
+        fit=[]
+        temporary=[]
+        temporary=self.translation(population)
+  #      print(temporary)
+        for i in range(len(temporary)):
+            x=temporary[i]*self.max_value/(math.pow(2,self.chromosome_length)-1)
+            fit.append(3*math.sin(x)+4*math.cos(x))
+ #       print(x)
+        return fit
+#更新适应度
+
+    def fit_update(self,fit,population):     #直接更改fit可能会报错
+        for i in range(len(fit)):
+            if fit[i]<0:
+                fit[i]=0
+                population[i]=self.best_individual(fit,population)[0]
+        return fit
+#适应度取总和
+    def Sum(self,fit):
+        total=0
+        for i in range(len(fit)):
+            total+=fit[i]
+        return total
+#适应度分片
+    def cumsum(self,fit):
+        for i in range(len(fit)-2,-1,-1):
+            total=0
+            j=0
+            while j<i:
+                total+=fit[j]
+                j+=1
+            fit[i]=total
+        fit[len(fit)-1]=1
+    #筛选
+    def selection(self,fit,population):
+        new_fitness=[]
+        #temporary_pop=[]
+        #print('Now fit array is:',fit)
+        total_fitness=self.Sum(fit)
+       # if total_fitness==0:
+       #     return 
+        for i in range(len(fit)):
+            new_fitness.append(fit[i]/total_fitness)
+        self.cumsum(new_fitness)
+        live_id=[]
+        pop_len=len(population)
+        for i in range(pop_len):
+            live_id.append(random.random())
+        live_id.sort()
+        fit_in=0
+        new_in=0
+        new_pop=population.copy()
+        while new_in < pop_len:
+            if live_id[new_in]<new_fitness[fit_in]:
+                new_pop[new_in]=population[fit_in]
+                new_in+=1
+            else:
+                fit_in+=1
+#        new_total_fitness=self.Sum(self.)
+        population=new_pop
+
+#交叉前的准备
+    def before_cross(self,fit):
+        cross_pro=[]
+        fitness_mean=np.mean(fit)
+#    fit_len=len(fit)
+        fit_copy=fit.copy()
+#    fit_min=fit_copy[0]
+        fit_copy.sort(reverse=True)
+        fit_max=fit_copy[0]
+        for i in range(len(fit)):
+            if fit[i]>=fitness_mean:
+                p=self.pc[0]+self.pc[1]*(fit[i]-fitness_mean)/(fit_max-fitness_mean)
+            else:
+                p=self.pc[1]
+            cross_pro.append(p)
+        return cross_pro
+#定义海明距离矩阵
+    def hamming_distance(self,a,b): 
+        length=len(a)
+        d=[[0 for i in range(length)]for j in range(length)]
+        #print(len(a[0]))
+        for i in range(length):
+            for j in range(1,length):
+                total=0
+                for k in range(len(a[0])):
+                    total+=abs(a[i][k]-b[j][k])
+                d[i][j]=total
+        return d
+
+#十进制转二进制
+        '''
+    def d2b(self,num):
+        l=[]
+        if num<0:
+            return '-'+(self.dec2bin(abs(num)))
+        while True:
+            num,remainder=divmod(num,2)
+            l.append(remainder)
+            if num == 0:
+                return l
+
+#更新子代为二进制
+    def bin_pop(self,population):
+        for i in range(len(population)):
+            population[i]=self.d2b(population[i][0])
+            pop_len=len(population[i])
+            population[i]=population[i].insert(0,[0]*(self.chromosome_length-pop_len))
+'''
+#一步化适应度总和
+    def fit_sum(self,population):
+        total=self.Sum(self.fit_update(self.fit_f(population),population))
+        return total
+#交叉
+    def crossover(self,population,cross_pro,hamming_tolerate,now_generation,d):
+        pop_len=len(population)
+        pop_temp=population.copy()
+        for i in range(pop_len-1):
+            for j in range(i,pop_len-1):
+                cross_point=random.randint(1,int(self.chromosome_length-now_generation/self.population_size*2*self.chromosome_length/3))
+            #cross_point=random.randint(0,len(population[0]))
+                rand=random.random()
+                if cross_pro[i]>rand and cross_pro[j]>rand and d[i][j]>hamming_tolerate:
+                    temporary_1=[]
+                    temporary_2=[]
+                    temporary_1.extend(population[i][0:cross_point])
+                    temporary_1.extend(population[j][cross_point:len(population[i])])
+                    temporary_2.extend(population[j][0:cross_point])
+                    temporary_2.extend(population[i][cross_point:len(population[j])])
+                    pop_temp[i]=temporary_1
+                    pop_temp[j]=temporary_2
+                    if self.fit_sum(pop_temp)>self.fit_sum(population):
+                        population[i]=pop_temp[i]
+                        population[j]=pop_temp[j]
+
+
+#突变
+    def mutation(self,population):
+        pop_len=len(population)
+        chro_len=len(population[0])
+        for i in range(pop_len):
+            if random.random()<pm:
+                m_point=random.randint(0,chro_len-1)
+                if population[i][m_point]==0:
+                    population[i][m_point]=1
+                else:
+                    population[i][m_point]=0
+    
+    
+#保留最优个体的十进制
+    def b2d(self,b):
+        total=0
+        for i in range(len(b)):
+            total+=b[i]*math.pow(2,i)
+        total=total*self.max_value/(math.pow(2,self.chromosome_length)-1)
+        return total
+
+#记录最优个体
+    def best_individual(self,fit,population):
+        pop_len=len(population)
+        best_id=[]
+        best_fitness=fit[0]
+        for i in range(pop_len):
+            if fit[i]>best_fitness:
+                best_fitness=fit[i]
+                best_id=population[i]
+        return [best_id,best_fitness]
+#画图
+    def plot(self,results):
+        X=[]
+        Y=[]
+        for i in range(len(results)):
+            X.append(i)
+            Y.append(results[i][0])
+        plt.plot(X,Y)
+        plt.show()
+#主函数
+    def main(self):
+         results=[[]]
+         population=self.species_origin()
+         for i in range(self.population_size):
+             print('第%d次'%(i+1))
+             print('Strat:',time.strftime('%H-%M-%S',time.localtime()))
+             d=self.hamming_distance(population,population)
+             fit=self.fit_f(population)
+             self.fit_update(fit,population)
+             best_id,best_fitness=self.best_individual(fit,population)
+             results.append([best_fitness,self.b2d(best_id)])
+             #print('The best fitness now is ',best_fitness)
+             self.selection(fit,population)
+             cross_pro=self.before_cross(fit)
+             self.crossover(population,cross_pro,hamming_tolerate,i,d)
+             self.mutation(population)
+             print('End:',time.strftime('%H-%M-%S',time.localtime()))
+#             self.bin_pop(population)
+         results=results[1:]
+         results.sort()
+         self.plot(results)
+
+if __name__=='__main__':
+    population_size=10
+    max_value=6.5
+    chromosome_length=10
+    hamming_tolerate=2
+    pc=[0.7,0.3]
+    pm=0.01
+    ga=GA(population_size,chromosome_length,max_value,pc,pm)
+    ga.main()
+
+
+'''
+#主程序
+if __name__=='__main__':
+    population_size=500
+    max_value=6.5
+    chromosome_length=10
+    pc=0.6
+    pm=0.01
+    results=[[]]
+    pop=population=species_origin(population_size,chromosome_length)
+    for i in range(population_size):
+        fit=fit_f(population,chromosome_length,max_value)
+        fit_update(fit)
+        best_id,best_fitness=best_individual(population,fit)
+        results.append(best_fitness,b2d(best_id,chromosome_length,max_value))
+        selection(population,fit)
+        crossover(population,pc)
+        mutation(population,pm)
+
+results=results[1:]
+results.sort()
+X=[]
+Y=[]
+for i in range(len(results)):
+    X.append(i)
+    Y.append(results[i][0])
+plt.plot(X,Y)
+plt.show()
+'''
