@@ -1,0 +1,143 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Apr  2 10:32:58 2019
+
+@author: bigjie
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+import time
+#SA for TSP
+class SA(object):
+    def __init__(self,coordinates,town_num,alpha,T,markov_len,best_value,current_value):
+        self.coordinates=coordinates
+        self.town_num=town_num
+        self.alpha=alpha
+        self.T=T
+        self.markov_len=markov_len
+        self.best_value=best_value
+        self.current_value=current_value
+#        self.new_solution=new_solution
+#        self.current_solution=current_solution
+#        self.best_solution=best_solution
+    
+#构造距离矩阵
+    def distance_array(self):
+        #town_num=coordinates.shape[0]
+        dis_arr=np.zeros((self.town_num,self.town_num))
+        for i in range(self.town_num):
+            for j in range(i,self.town_num):
+            #对称阵，距离默认为二范数的欧式距离
+                dis_arr[i][j]=dis_arr[j][i]=np.linalg.norm(self.coordinates[i]-self.coordinates[j])
+        return dis_arr
+
+#交叉变换
+    def cross(self,new_solution):
+        if np.random.rand()<0.5:
+        #二交换
+            while True:
+                loc_1=np.int(np.ceil(np.random.rand()*(self.town_num-1)))
+                loc_2=np.int(np.ceil(np.random.rand()*(self.town_num-1)))
+                if loc_1 != loc_2:
+                    break
+            new_solution[loc_1],new_solution[loc_2]=new_solution[loc_2],new_solution[loc_1]
+    
+        else:
+        #三交换
+            while True:
+                loc_1=np.int(np.ceil(np.random.rand()*(self.town_num-1)))
+                loc_2=np.int(np.ceil(np.random.rand()*(self.town_num-1)))
+                loc_3=np.int(np.ceil(np.random.rand()*(self.town_num-1)))
+                if loc_1 != loc_2 & loc_1 != loc_3 & loc_2 != loc_3:
+                    break
+        #对三个节点按大小顺序排序
+            loc=[loc_1,loc_2,loc_3]
+            loc.sort()
+        #将两小节点间片段插到大节点后
+            temp=new_solution[loc[0]:loc[1]].copy()
+            new_solution[loc[0]:(loc[2]-loc[1]+1+loc[0])]=new_solution[loc[1]:loc[2]+1].copy()
+            new_solution[(loc[2]+1-loc[1]+loc[0]):(loc[2]+1)]=temp.copy()
+        return new_solution
+
+#模拟退火
+    def SA_select(self,new_solution,current_solution,best_solution,dis_arr,t):
+        new_value=0
+        for i in range(self.town_num-1):
+            new_value+=dis_arr[new_solution[i]][new_solution[i+1]]
+        new_value+=dis_arr[new_solution[0]][new_solution[self.town_num-1]]
+        if new_value < self.current_value:                      #接受该路径,更新目前值
+            self.current_value=new_value
+            current_solution=new_solution.copy()
+            if new_value < self.best_value:
+                self.best_value=new_value
+                best_solution=new_solution.copy()
+        else:
+            if np.random.rand() < np.exp((self.current_value-new_value)/t):
+                self.current_value=new_value
+                current_solution=new_solution.copy()
+            else:
+                new_solution=current_solution.copy()
+#        print("new_value:",new_value)
+#        print('current_value',self.current_value)
+#        print('best_value',self.best_value)
+        return new_solution,current_solution,best_solution
+
+    def plot(self,results):
+        plt.plot(np.array(results))
+        plt.xlabel("t")
+        plt.ylabel('best_value')
+        plt.show()
+    
+    def main(self):
+        dis_arr=self.distance_array()
+        results=[]
+        t=self.T[1]
+#        global new_solution,current_solution,best_solution
+        new_solution=np.arange(self.town_num)
+        current_solution=new_solution.copy()
+        best_solution=new_solution.copy()
+        while t>self.T[0]:
+            for i in range(self.markov_len):
+                new_solution,current_solution,best_solution=self.SA_select(new_solution,current_solution,best_solution,dis_arr,t)
+                new_solution=self.cross(new_solution)
+            t=t*self.alpha
+            results.append(self.best_value)
+#        print('The best value is :',results[-1])
+#        print('The best solution is :',best_solution)
+        self.plot(results)
+        print('The best value is :',results[-1])
+        print('The best solution is :')
+        for i in range(self.town_num-1):
+            print('City %d'%best_solution[i],end='->')
+        print('City %d'%best_solution[self.town_num-1])
+    
+    
+    
+    
+if __name__=='__main__':
+    coordinates = np.array([[565.0,575.0],[25.0,185.0],[345.0,750.0],[945.0,685.0],[845.0,655.0],
+                        [880.0,660.0],[25.0,230.0],[525.0,1000.0],[580.0,1175.0],[650.0,1130.0],
+                        [1605.0,620.0],[1220.0,580.0],[1465.0,200.0],[1530.0,  5.0],[845.0,680.0],
+                        [725.0,370.0],[145.0,665.0],[415.0,635.0],[510.0,875.0],[560.0,365.0],
+                        [300.0,465.0],[520.0,585.0],[480.0,415.0],[835.0,625.0],[975.0,580.0],
+                        [1215.0,245.0],[1320.0,315.0],[1250.0,400.0],[660.0,180.0],[410.0,250.0],
+                        [420.0,555.0],[575.0,665.0],[1150.0,1160.0],[700.0,580.0],[685.0,595.0],
+                        [685.0,610.0],[770.0,610.0],[795.0,645.0],[720.0,635.0],[760.0,650.0],
+                        [475.0,960.0],[95.0,260.0],[875.0,920.0],[700.0,500.0],[555.0,815.0],
+                        [830.0,485.0],[1170.0, 65.0],[830.0,610.0],[605.0,625.0],[595.0,360.0],
+                        [1340.0,725.0],[1740.0,245.0]])
+    alpha=0.99   #温度下降速率
+    T=(1,100)    #温度范围
+    markov_len=1000     #随机游动步数
+    town_num=coordinates.shape[0]
+    best_value=current_value=100000
+#    new_solution=np.arange(town_num)
+#   current_solution=new_solution.copy()
+#    best_solution=new_solution.copy()
+    sa=SA(coordinates,town_num,alpha,T,markov_len,best_value,current_value)
+    start=time.process_time()
+    sa.main()
+    #print('end',time.strftime('%H-%M-%S',time.localtime()))
+    end=time.process_time()
+    print('Search the best value need %.10ss'%(end-start))
