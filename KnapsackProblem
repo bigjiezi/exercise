@@ -1,0 +1,48 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Apr  1 19:56:09 2019
+
+@author: bigjie
+"""
+
+#0-1 Knapsack Problem
+import numpy as np
+def Simple_Knapsack(weight,value,max_weight,sample_num):
+    best_scheme=np.zeros((sample_num+1,max_weight+1),dtype=np.int32)
+    for i in range(1,sample_num+1):
+        for j in range(1,max_weight+1):
+            if weight[i]>j:
+                best_scheme[i][j]=best_scheme[i-1][j]
+            else:
+                best_scheme[i][j]=max(best_scheme[i-1][j],best_scheme[i-1][j-weight[i]]+value[i])
+    return best_scheme[-1][-1]
+
+#Optimize 0-1
+def Simple_Knapsack_Optimize(weight,value,max_weight,sample_num):
+    best_scheme=np.zeros((max_weight+1),dtype=np.int32)
+    for i in range(1,sample_num+1):
+        for j in range(max_weight,0,-1):
+            if weight[i]<=j:
+                best_scheme[j]=max(best_scheme[j],best_scheme[j-weight[i]]+value[i])
+    return best_scheme[-1]
+
+#Complete Knapsack Problem
+def Complete_Knapsack_Problem(weight,value,max_weight,sample_num):
+    best_scheme=np.zeros((max_weight+1),dtype=np.int32)
+    for i in range(1,sample_num+1):
+        for j in range(1,max_weight+1):
+            if weight[i]<=j:
+                best_scheme[j]=max(best_scheme[j],best_scheme[j-weight[i]]+value[i])
+    return best_scheme[-1]
+
+if __name__=='__main__':
+    weight=[0,10,20,30]
+    value=[0,60,100,120]
+    max_weight=50
+    sample_num=3
+    result=Simple_Knapsack(weight,value,max_weight,sample_num)
+    print('0-1 Knapsack Problem:',result)
+    result2=Simple_Knapsack_Optimize(weight,value,max_weight,sample_num)
+    print('Optimize 0-1 Knapsack Problem:',result2)
+    result3=Complete_Knapsack_Problem(weight,value,max_weight,sample_num)
+    print('Complete Knapsack Problem:',result3)
