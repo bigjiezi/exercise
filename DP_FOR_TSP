@@ -1,0 +1,63 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Apr  3 16:56:26 2019
+
+@author: bigjie
+"""
+import numpy as np
+import time
+#DP for TSP
+coordinates = np.array([[2066,2333],[935,1304],[1270,200],[945.0,685.0],[845.0,655.0],
+                        [880.0,660.0],[25.0,230.0],[525.0,1000.0],[580.0,1175.0],[650.0,1130.0],
+                        [1605.0,620.0]])
+def distance_array(coordinates):
+#start=time.process_time()
+    town_num=coordinates.shape[0]
+    dis_arr=np.zeros((town_num,town_num))
+    for i in range(town_num):
+        for j in range(town_num):
+            dis_arr[i][j]=dis_arr[j][i]=np.linalg.norm(coordinates[i]-coordinates[j])
+    return dis_arr
+
+
+
+def DP_for_TSP(path_bin,init,step):
+    if dp[path_bin][init]!=-1:        #即该距离已经更新
+        return dp[path_bin][init]
+    if path_bin == 1<<town_num:             #如果所有城市都未访问
+        return dis_arr[0][init]
+    path_sum=1000000
+    for i in range(town_num):
+        if path_bin & 1<<i:    #路径包含第i个城市
+            temp=DP_for_TSP(path_bin & ~(1<<i),i,step+1)+dis_arr[i][init]   #dp状态转移方程  
+            if temp < path_sum:
+                path_sum=temp
+                path_arr[path_bin][init]=i
+    dp[path_bin][init]=path_sum
+    return dp[path_bin][init]
+
+if __name__=='__main__':
+    start=time.process_time()
+    town_num=coordinates.shape[0]
+    #print(type(town_num))
+    path_arr=np.ones((2**(town_num+1),town_num))
+    dp=np.ones((2**(town_num+1),town_num))*(-1)
+    dis_arr=distance_array(coordinates)
+    init_city=0
+    path=0
+    for i in range(town_num+1):
+        path=path | 1<<i                    #初始最终路径为访问所有节点
+    distance=DP_for_TSP(path,init_city,0)
+    print('The best value is :',distance)
+    step=0
+    print('The best path is :')
+    while True:                #打印路径
+        print('City %d'%path_arr[path][init_city],end='->')
+        init_city=int(path_arr[path][init_city])
+        path=path & ~(1<<init_city)
+        step+=1
+        if step >= town_num-1:
+            break
+    print('City %d'%path_arr[path][init_city])
+    end=time.process_time()
+    print('It takes %ss'%(end-start))
