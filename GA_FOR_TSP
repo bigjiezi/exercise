@@ -1,0 +1,247 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Apr  8 09:11:53 2019
+
+@author: bigjie
+"""
+
+#import random
+import math
+import matplotlib.pyplot as plt
+import numpy as np
+import time
+
+class GA(object):
+    def __init__(self,coordinates,population_size,chromosome_length,pc,pm,Generation):
+        self.population_size=population_size
+        self.chromosome_length=chromosome_length
+        self.coordinates=coordinates
+        #self.max_value=max_value
+        self.pc=pc
+        self.pm=pm
+        self.Generation=Generation
+#生成距离矩阵
+    def distance_array(self):
+        m=self.chromosome_length
+        dist_arr=np.ones((m,m))
+        for i in range(m):
+            for j in range(i,m):
+                dist_arr[i][j]=dist_arr[j][i]=np.linalg.norm(self.coordinates[i]-self.coordinates[j])
+        return dist_arr
+#种群生成
+    def species_origin(self):
+        population=[[]]
+        for i in range(self.population_size):
+            chromosome_list=list(range(self.chromosome_length))
+            np.random.shuffle(chromosome_list)
+            population.append(chromosome_list)
+        return population[1:]
+
+#计算适应度列表
+    def fit_f(self,population,dist_arr):
+        fit=[]
+#        dist_arr=self.distance_array()
+        for individual in population:
+            dist=0
+            i=0
+            while i < self.chromosome_length-1:
+                dist+=dist_arr[individual[i]][individual[i+1]]
+                i+=1
+            fit.append(dist)
+        return fit
+ 
+
+#适应度取总和
+    def Sum(self,fit):
+        total=0
+        for i in range(len(fit)):
+            total+=fit[i]
+        return total
+
+#筛选
+    def selection(self,fit,population,best_id):
+        ave=np.mean(fit)
+        for i in range(len(population)):
+            if fit[i] > ave/3*4:
+                population[i]=best_id
+#        return population
+
+#交叉前的准备
+    def before_cross(self,fit):
+        cross_pro=[]
+        fitness_mean=np.mean(fit)
+#    fit_len=len(fit)
+        fit_copy=fit.copy()
+#    fit_min=fit_copy[0]
+        fit_copy.sort()
+        fit_min=fit_copy[0]
+        for i in range(len(fit)):
+            if fit[i]<=fitness_mean:
+                p=self.pc[0]+self.pc[1]*(-fit[i]+fitness_mean)/(-fit_min+fitness_mean)
+            else:
+                p=self.pc[1]
+            cross_pro.append(p)
+        return cross_pro
+
+#海明距离
+    def Hemming_Distance(self,population):
+        pop_len=len(population)
+        h_dist=np.zeros((pop_len,pop_len))
+        #print(population[0])
+        #print(self.chromosome_length)
+        for i in range(pop_len):
+            for j in range(i,pop_len):
+                count=0
+                for k in range(self.chromosome_length):
+                    if population[i][k] != population[j][k]:
+                        count+=1
+                h_dist[i][j]=h_dist[j][i]=count
+        return h_dist
+#交叉
+    def crossover(self,population,h_dist,hamming_tolerate,cross_pro,g):
+        pop_len=len(population)
+        book=[]
+#        pop_temp=population.copy()
+        for i in range(pop_len-1):
+            if i not in book:
+                for j in range(i,pop_len-1):
+                    if j not in book:
+                    
+            #    cross_point=random.randint(1,int(self.chromosome_length-now_generation/self.population_size*2*self.chromosome_length/3))
+            #cross_point=random.randint(0,len(population[0]))
+                        rand=np.random.rand()
+                        if cross_pro[i]>rand and cross_pro[j]>rand and h_dist[i][j]>hamming_tolerate:
+                            book.append(i)
+                            book.append(j)
+                            if g/self.Generation <=0.5:
+                        #二交叉
+                                loc_1=np.int(np.ceil(np.random.rand()*(self.chromosome_length-2)))
+                                loc_2=loc_1+min(self.chromosome_length-loc_1-1,np.int(np.ceil(np.random.rand()*(self.chromosome_length/4))))
+                        
+                            elif g/self.Generation > 0.5 and g/self.Generation <= 0.8:
+                                loc_1=np.int(np.ceil(np.random.rand()*(self.chromosome_length/2)))
+                                loc_2=loc_1+np.int(np.ceil(np.random.rand()*(self.chromosome_length-loc_1-1)))
+                            else:
+                                loc_1=np.int(np.ceil(np.random.rand()*(self.chromosome_length/4)))
+                                loc_2=self.chromosome_length-loc_1
+                            temp_1=population[i][loc_1:loc_2].copy()
+                            temp_2=population[j][loc_1:loc_2].copy()
+                            temp=population[i].copy()
+                    #population[i][loc_1:loc_2]=temp_2
+                            k=0
+                            for p in range(self.chromosome_length):
+                                if population[j][p] not in temp_1:
+                                    if k < loc_1:
+                                        population[i][k]=population[j][p]
+                                        k+=1
+                                    else:
+                                        population[i][k+loc_2-loc_1]=population[j][p]
+                                        k+=1
+                            k=0
+                            for p in range(self.chromosome_length):
+                                if temp[p] not in temp_2:
+                                    if k < loc_1:
+                                        population[j][k]=temp[p]
+                                        k+=1
+                                    else:
+                                        population[j][k+loc_2-loc_1]=temp[p]
+                                        k+=1
+                    #population[j][loc_1:loc_2]=temp_1
+#        return population
+                        
+                        
+
+
+#突变
+    def mutation(self,population,g):
+        t=g/self.Generation
+        #tanh=(math.exp(t)-math.exp(-t))/(math.exp(t)+math.exp(-t))
+        change_pm=self.pm*(1-math.tanh(t))
+        pop_len=len(population)
+        chro_len=len(population[0])
+#        print(population[0])
+        for i in range(pop_len):
+            if np.random.rand() < change_pm:
+                while True:
+                    m_point_1=np.random.randint(0,chro_len-1)
+                    m_point_2=np.random.randint(0,chro_len-1)
+                    if m_point_1 != m_point_2:
+                        break
+                temp=population[i][m_point_1]
+                population[i][m_point_1]=population[i][m_point_2]
+                population[i][m_point_2]=temp
+                #population[i][m_point_1],population[i][m_point_2]=population[i][m_point_2],population[i][m_point_1]
+#        return population
+    
+
+#记录最优个体
+    def best_individual(self,fit,population):
+        pop_len=len(population)
+        best_id=[]
+        best_fitness=fit[0]
+        for i in range(pop_len):
+            if fit[i]<best_fitness:
+                best_fitness=fit[i]
+                best_id=population[i]
+        return [best_id,best_fitness]
+#画图
+    def plot(self,results):
+        X=[]
+        Y=[]
+        for i in range(len(results)):
+            X.append(i)
+            Y.append(results[i][0])
+        plt.plot(X,Y)
+        plt.xlabel('t')
+        plt.ylabel('shortest distance')
+        plt.show()
+#主函数
+    def main(self):
+         results=[[]]
+         population=self.species_origin()
+         #print(population[5])
+         dist_arr=self.distance_array()
+         for g in range(1,self.Generation+1):
+             h_dist=self.Hemming_Distance(population)
+             #print(h_dist)
+             fit=self.fit_f(population,dist_arr)
+             #self.fit_update(fit,population)
+             best_id,best_fitness=self.best_individual(fit,population)
+             results.append([best_fitness,best_id])
+             #print('The best fitness now is ',best_fitness)
+             self.selection(fit,population,best_id)
+             #print(population[5])
+             cross_pro=self.before_cross(fit)
+             self.crossover(population,h_dist,hamming_tolerate,cross_pro,g)
+             #print(population[5])
+             self.mutation(population,g)
+             #print(population[5])
+             
+         results=results[1:]
+         results.sort(reverse=True)
+         self.plot(results)
+         print('The shortest distance is: %.6f km'%results[-1][0])
+
+if __name__=='__main__':
+    coordinates = np.array([[565.0,575.0],[25.0,185.0],[345.0,750.0],[945.0,685.0],[845.0,655.0],
+                        [880.0,660.0],[25.0,230.0],[525.0,1000.0],[580.0,1175.0],[650.0,1130.0],
+                        [1605.0,620.0],[1220.0,580.0],[1465.0,200.0],[1530.0,5.0],[845.0,680.0],
+                        [725.0,370.0],[145.0,665.0],[415.0,635.0],[510.0,875.0],[560.0,365.0],
+                        [300.0,465.0],[520.0,585.0],[480.0,415.0],[835.0,625.0],[975.0,580.0],
+                        [1215.0,245.0],[1320.0,315.0],[1250.0,400.0],[660.0,180.0],[410.0,250.0],
+                        [420.0,555.0],[575.0,665.0],[1150.0,1160.0],[700.0,580.0],[685.0,595.0],
+                        [685.0,610.0],[770.0,610.0],[795.0,645.0],[720.0,635.0],[760.0,650.0],
+                        [475.0,960.0],[95.0,260.0],[875.0,920.0],[700.0,500.0],[555.0,815.0],
+                        [830.0,485.0],[1170.0, 65.0],[830.0,610.0],[605.0,625.0],[595.0,360.0],
+                        [1340.0,725.0],[1740.0,245.0]])
+    population_size=100
+    chromosome_length=coordinates.shape[0]
+    hamming_tolerate=5
+    pc=[0.7,0.3]
+    pm=0.01
+    Generation=100   #最大进化代数
+    ga=GA(coordinates,population_size,chromosome_length,pc,pm,Generation)
+    start=time.process_time()
+    ga.main()
+    end=time.process_time()
+    print('Search the best value need %.6ss'%(end-start))
