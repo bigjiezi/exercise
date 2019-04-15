@@ -1,0 +1,32 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Apr 15 11:25:05 2019
+
+@author: bigjie
+"""
+import numpy as np
+#EightQueen Problem
+def Queen_as_Array(queen):
+    n=len(queen)
+    queen_array=np.zeros((n,n))
+    for i in range(n):
+        queen_array[i][queen[i]]=1
+    return queen_array
+        
+def Queen(queen,current=0):
+    if len(queen) == current:
+        print(Queen_as_Array(queen))
+        return 0
+    for col in range(len(queen)):
+        queen[current]=col #遍历皇后填在每一列时的递归情况
+        flag=True
+        for row in range(current):
+            #如果之前的某行皇后所在列与现在的所在列相同 后者是 两者的行差与列差绝对值相同（成对角线），就返回失败
+            if queen[row] == col or abs(queen[row]-col) == current-row: 
+                flag=False
+                break
+        if flag:
+            Queen(queen,current+1)
+if __name__ == '__main__':
+    queen=[None]*8
+    Queen(queen)
