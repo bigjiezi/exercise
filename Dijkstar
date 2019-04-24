@@ -1,0 +1,115 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Apr  9 15:42:38 2019
+
+@author: bigjie
+"""
+
+import numpy as np
+import time
+#Dijkstar Algorithm
+
+coordinates = np.array([[565.0,575.0],[25.0,185.0],[345.0,750.0],[945.0,685.0],[845.0,655.0],
+                        [880.0,660.0],[25.0,230.0],[525.0,1000.0],[580.0,1175.0],[650.0,1130.0],
+                        [1605.0,620.0],[1220.0,580.0],[1465.0,200.0],[1530.0,5.0],[845.0,680.0],
+                        [725.0,370.0],[145.0,665.0],[415.0,635.0],[510.0,875.0],[560.0,365.0],
+                        [300.0,465.0],[520.0,585.0]])
+debug=0     #学一招，可以调试过程中输出bug位置
+town_num=coordinates.shape[0]
+point_array=[]         #存储节点顺序
+dist=[]
+def distance_array(coordinates):
+    #town_num=coordinates.shape[0]
+    dis_arr=np.zeros((town_num,town_num))
+    for i in range(town_num):
+        for j in range(i,town_num):
+            dis_arr[i][j]=dis_arr[j][i]=np.linalg.norm(coordinates[i]-coordinates[j])
+    return dis_arr
+
+def dis_update(dis_arr):
+    #limit_line_num=10
+    #town_num=dis_arr.shape[0]
+    inf=10000000
+    for k in range(town_num):
+        t=0
+        limit_line_num=np.random.randint(1,town_num-1)
+        while t < limit_line_num:
+            v=np.random.randint(0,town_num-1)
+            dis_arr[k][v]=inf
+            t+=1
+    return dis_arr
+      
+dis_arr=dis_update(distance_array(coordinates))
+
+def init(start):
+    if debug:
+        print('[init]')
+    point_array.append({'index':start,'val':0})
+    for i in range(town_num):
+        dist.append(dis_arr[start][i])
+
+def point_in_array(point):
+    for i in range(len(point_array)):
+        if point == point_array[i]['index']:
+            return True
+    return False
+
+def get_min():
+    if debug:
+        print('[get_min]')
+    if len(dist) < 1:
+        exit(1)
+    min_value=1000000
+    min_index=0
+    for i in range(len(dist)):
+        if point_in_array(i) == False:
+            if dist[i]<min_value and dist[i]>0:
+                min_index=i
+                min_value=dist[i]
+    return {'index':min_index,'val':min_value}
+
+def update_dist():
+    temp_index=point_array[len(point_array)-1]['index']
+    temp_value=point_array[len(point_array)-1]['val']
+    if debug:
+        print('[update_dist]','temp_index:',temp_index,'temp_value:',temp_value)
+    for i in range(town_num):
+        if point_in_array(i) == False:
+            i_dist=temp_value+dis_arr[temp_index][i]
+            if debug:
+                print('i_dist',i_dist)
+            if i_dist < dist[i]:
+                dist[i]=i_dist
+    if debug:
+        print('[after update dist], dist is :',dist)
+
+def process():
+    if debug:
+        print('[process]')
+    i=0
+    point_array_len=len(point_array)
+    while point_array_len != town_num and i < town_num:
+        min_vertex=get_min()
+        if debug:
+            print('i=',i,'min_vertex=',min_vertex,'point_array=',point_array,'point_array_len=',point_array_len)
+        if min_vertex['index'] >= 0:
+            if debug:
+                print('Before Append,point_array is :',point_array)
+            point_array.append(min_vertex)
+            if debug:
+                print('After Append,point_array is :',point_array)
+            update_dist()
+        i+=1
+        point_array_len=len(point_array)
+    
+def Dijkstar(start):
+    init(start)
+    print('初始条件：\n','\tstart=',start,'\n\tpoint_array=',point_array,'\n\tdist=',dist)
+    process()
+    print('结果：\n','\tpoint_array=',point_array,'\n\tdist=',dist)
+    
+    
+if __name__ == '__main__':
+    Dijkstar(0)
+    
+    
