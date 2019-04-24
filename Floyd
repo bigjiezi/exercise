@@ -1,0 +1,54 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Apr  9 15:05:54 2019
+
+@author: bigjie
+"""
+
+import numpy as np
+import time
+
+#Floyd Algorithm
+
+coordinates = np.array([[565.0,575.0],[25.0,185.0],[345.0,750.0],[945.0,685.0],[845.0,655.0],
+                        [880.0,660.0],[25.0,230.0],[525.0,1000.0],[580.0,1175.0],[650.0,1130.0],
+                        [1605.0,620.0],[1220.0,580.0],[1465.0,200.0],[1530.0,5.0],[845.0,680.0],
+                        [725.0,370.0],[145.0,665.0],[415.0,635.0],[510.0,875.0],[560.0,365.0],
+                        [300.0,465.0],[520.0,585.0]])
+def distance_array(coordinates):
+    town_num=coordinates.shape[0]
+    dis_arr=np.zeros((town_num,town_num))
+    for i in range(town_num):
+        for j in range(i,town_num):
+            dis_arr[i][j]=dis_arr[j][i]=np.linalg.norm(coordinates[i]-coordinates[j])
+    return dis_arr
+
+def dis_update(dis_arr):
+    limit_line_num=20
+    town_num=dis_arr.shape[0]
+    k=1
+    while k<=limit_line_num:
+        while True:
+            i=np.random.randint(0,town_num-1)
+            j=np.random.randint(0,town_num-1)
+            if i != j:
+                break
+        dis_arr[i][j]=1000000
+        k+=1
+    return dis_arr
+
+if __name__ == '__main__':
+    start=time.process_time()
+    dis_arr=distance_array(coordinates)
+    dis_arr=dis_update(dis_arr)
+    town_num=dis_arr.shape[0]
+    print('Before Floyd:')
+    print(dis_arr)
+    for k in range(town_num):
+        for i in range(town_num):
+            for j in range(town_num):
+                dis_arr[i][j]=min(dis_arr[i][j],dis_arr[i][k]+dis_arr[k][j])
+    print('After Floyd:')
+    print(dis_arr)
+    end=time.process_time()
+    print('FLoyd need %.6ss'%(end-start))
